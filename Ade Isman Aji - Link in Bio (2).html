@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ade Isman Aji — Senior Software Engineer</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Smooth theme transitions */
+    *, *::before, *::after {
+      transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+      transition-duration: 200ms;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Subtle grid pattern for dark and light modes */
+    .bg-grid {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    }
+    html.dark .bg-grid {
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    }
+
+    /* Dynamic cursor spotlight effect */
+    .spotlight-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(350px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(0, 0, 0, 0.05), transparent 80%);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    html.dark .spotlight-card::before {
+      background: radial-gradient(350px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(255, 255, 255, 0.07), transparent 80%);
+    }
+    .spotlight-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Pulse animation for active availability status */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.9); opacity: 0.8; }
+      50% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(0.9); opacity: 0; }
+    }
+    .pulse-glow {
+      animation: pulse-ring 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+
+    /* Staggered entrance animations */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-enter {
+      opacity: 0;
+      animation: fadeSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 40ms; }
+    .delay-2 { animation-delay: 80ms; }
+    .delay-3 { animation-delay: 120ms; }
+    .delay-4 { animation-delay: 160ms; }
+    .delay-5 { animation-delay: 200ms; }
+    .delay-6 { animation-delay: 240ms; }
+  </style>
+</head>
+
+<body class="bg-grid bg-zinc-50 dark:bg-[#090a0f] text-zinc-900 dark:text-zinc-100 min-h-screen flex justify-center selection:bg-zinc-300 dark:selection:bg-zinc-800 px-4 py-8 md:py-14 antialiased transition-colors duration-300">
+  <div class="w-full max-w-[500px] flex flex-col items-center relative z-10">
+    
+    <!-- Top System Bar: Location/Time & Dark Mode Toggle -->
+    <header class="w-full flex items-center justify-between pb-5 mb-2 border-b border-zinc-200 dark:border-zinc-800/80">
+      <div class="flex items-center gap-2 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="tracking-wide">BANDUNG, ID</span>
+        <span class="text-zinc-400 dark:text-zinc-600">/</span>
+        <span id="localClock" class="text-zinc-700 dark:text-zinc-300 font-medium">00:00:00 WIB</span>
+      </div>
+
+      <!-- Theme Toggle Button -->
+      <button id="themeToggle" aria-label="Toggle light and dark mode" class="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-200/60 dark:bg-zinc-800/60 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all border border-zinc-300/60 dark:border-zinc-700/50">
+        <!-- Moon Icon (Visible in Light Mode) -->
+        <svg id="moonIcon" class="w-4 h-4 hidden dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <!-- Sun Icon (Visible in Dark Mode) -->
+        <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Profile Identification Section -->
+    <section class="w-full flex flex-col items-center text-center mt-4 mb-7 animate-enter delay-1">
+      <div class="relative mb-4 group">
+        <!-- Circular Image Avatar Container -->
+        <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-zinc-300 via-zinc-200 to-zinc-400 dark:from-zinc-700 dark:via-zinc-800 dark:to-zinc-600 shadow-md dark:shadow-xl dark:shadow-black/40 relative flex items-center justify-center">
+          <img 
+            src="https://github.com/isman17.png" 
+            alt="Ade Isman Aji" 
+            onerror="this.onerror=null;this.src='https://placehold.co/200x200/18181b/ffffff?text=Ade+Isman';" 
+            class="w-full h-full rounded-full object-cover border-2 border-zinc-50 dark:border-[#090a0f] transition-transform duration-300 group-hover:scale-105"
+          />
+          <!-- Live Status Beacon -->
+          <div class="absolute bottom-1 right-1 flex items-center justify-center">
+            <span class="pulse-glow absolute w-4 h-4 rounded-full bg-emerald-400"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-500 border-2 border-zinc-50 dark:border-[#090a0f] relative z-10" title="Available for projects"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-200/80 dark:bg-zinc-800/60 border border-zinc-300 dark:border-zinc-700/50 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 mb-2.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        <span>Available for Technical Roles</span>
+      </div>
+
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
+        Ade Isman Aji
+      </h1>
+      
+      <p class="font-mono text-xs text-zinc-600 dark:text-zinc-400 mt-1 tracking-wide">
+        Senior Software Engineer &middot; 8 YOE
+      </p>
+
+      <p class="text-xs sm:text-[13px] text-zinc-600 dark:text-zinc-400 max-w-sm mt-3 leading-relaxed font-normal">
+        Architecting high-concurrency systems, server-side caching mechanisms, and scalable full-stack web & mobile applications.
+      </p>
+
+      <!-- Technical Stack Badges -->
+      <div class="flex flex-wrap justify-center gap-1.5 mt-4 max-w-sm">
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Laravel</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">PHP</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Livewire</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Vue.js</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Flutter</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Kotlin</span>
+        <span class="font-mono text-[10px] bg-white dark:bg-zinc-900/90 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded shadow-sm dark:shadow-none">Caching Layers</span>
+      </div>
+
+      <!-- Quick Social Icons Row -->
+      <nav class="flex items-center gap-2 mt-5" aria-label="Social connections">
+        <a href="https://github.com/isman17" target="_blank" rel="noopener noreferrer" class="h-9 px-3 rounded-lg bg-white dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 text-xs font-mono shadow-sm transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>github</span>
+        </a>
+
+        <a href="https://www.linkedin.com/in/adeismanaji" target="_blank" rel="noopener noreferrer" class="h-9 px-3 rounded-lg bg-white dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 text-xs font-mono shadow-sm transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.79v8.37H6.46v-8.37M7.86 6.5a1.63 1.63 0 0 0-1.63 1.63c0 .9.73 1.63 1.63 1.63.9 0 1.63-.73 1.63-1.63 0-.9-.73-1.63-1.63-1.63z"/>
+          </svg>
+          <span>linkedin</span>
+        </a>
+
+        <button id="copyEmailQuick" class="h-9 px-3 rounded-lg bg-white dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white flex items-center gap-2 text-xs font-mono shadow-sm transition-all" title="Copy email address">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <span>email</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- Stack of Key Link Cards -->
+    <main class="w-full flex flex-col gap-2.5">
+      
+      <!-- Card 1: Formal Education (Interactive Modal Trigger) -->
+      <button id="openEducationModal" class="spotlight-card group w-full text-left p-4 rounded-xl bg-white dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/90 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 animate-enter delay-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-amber-50 dark:bg-zinc-800 border border-amber-200 dark:border-zinc-700/60 flex items-center justify-center text-amber-600 dark:text-zinc-300 group-hover:text-amber-500 dark:group-hover:text-amber-400 group-hover:border-amber-400/40 transition-colors flex-shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">Education & Degree</h2>
+                <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">2018 &mdash; 2022</span>
+              </div>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Sekolah Tinggi Teknologi Bandung &middot; Informatics Engineering (S.T.)</p>
+            </div>
+          </div>
+          <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500 group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors flex items-center gap-1">
+            view
+            <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </button>
+
+      <!-- Card 2: GitHub Repository Showcase -->
+      <a href="https://github.com/isman17" target="_blank" rel="noopener noreferrer" class="spotlight-card group block w-full p-4 rounded-xl bg-white dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/90 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 animate-enter delay-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-purple-50 dark:bg-zinc-800 border border-purple-200 dark:border-zinc-700/60 flex items-center justify-center text-purple-600 dark:text-zinc-300 group-hover:text-purple-500 dark:group-hover:text-purple-400 group-hover:border-purple-400/40 transition-colors flex-shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">Engineering Repositories</h2>
+                <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">Code</span>
+              </div>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">github.com/isman17 &middot; Backend caching, APIs & mobile prototypes</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-800 dark:group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </a>
+
+      <!-- Card 3: Interactive Experience & Career Drawer -->
+      <button id="openExperienceModal" class="spotlight-card group w-full text-left p-4 rounded-xl bg-white dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/90 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 animate-enter delay-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-zinc-800 border border-emerald-200 dark:border-zinc-700/60 flex items-center justify-center text-emerald-600 dark:text-zinc-300 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 group-hover:border-emerald-400/40 transition-colors flex-shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">Career Timeline & Proven Work</h2>
+                <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">8 Years</span>
+              </div>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Pentacode Digital, Indonesia Comnet Plus & STT Bandung</p>
+            </div>
+          </div>
+          <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-800 dark:group-hover:text-zinc-300 transition-colors flex items-center gap-1">
+            view
+            <svg class="w-3.5 h-3.5 fill-none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </button>
+
+      <!-- Card 4: Official Curriculum Vitae / Resume Download -->
+      <a href="ADE-ISMAN-AJI-FlowCV-Resume-20260210-2.pdf" target="_blank" download="ADE-ISMAN-AJI-Resume.pdf" class="spotlight-card group block w-full p-4 rounded-xl bg-white dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/90 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 animate-enter delay-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-rose-50 dark:bg-zinc-800 border border-rose-200 dark:border-zinc-700/60 flex items-center justify-center text-rose-600 dark:text-zinc-300 group-hover:text-rose-500 dark:group-hover:text-rose-400 group-hover:border-rose-400/40 transition-colors flex-shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-300 transition-colors">Curriculum Vitae / Resume</h2>
+                <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">PDF</span>
+              </div>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Senior Software Engineer &middot; Verified track record & skills</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-rose-600 dark:group-hover:text-rose-400 group-hover:translate-y-0.5 transition-all flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </div>
+      </a>
+
+      <!-- Card 5: Direct Inquiries Email -->
+      <a href="mailto:adeismanaji@gmail.com" class="spotlight-card group block w-full p-4 rounded-xl bg-white dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-800/90 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm dark:shadow-none transition-all duration-200 transform hover:-translate-y-0.5 animate-enter delay-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-9 h-9 rounded-lg bg-blue-50 dark:bg-zinc-800 border border-blue-200 dark:border-zinc-700/60 flex items-center justify-center text-blue-600 dark:text-zinc-300 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:border-blue-400/40 transition-colors flex-shrink-0 mt-0.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              </svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-medium text-zinc-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">Technical Inquiries & Roles</h2>
+                <span class="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">Official</span>
+              </div>
+              <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">adeismanaji@gmail.com</p>
+            </div>
+          </div>
+          <svg class="w-4 h-4 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-800 dark:group-hover:text-zinc-200 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </a>
+    </main>
+
+    <!-- Education Background Modal Overlay -->
+    <div id="educationModal" class="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+      <div id="educationModalBox" class="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl transform translate-y-8 transition-transform duration-300 max-h-[88vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+          <div>
+            <h3 class="text-base font-semibold text-zinc-900 dark:text-white">Education & Academic Foundation</h3>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-0.5">Formal Degree & Engineering Specialization</p>
+          </div>
+          <button id="closeEducationModal" class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors" aria-label="Close education popup">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Academic Details Timeline -->
+        <div class="space-y-6 mt-5">
+          <!-- Primary Degree -->
+          <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+            <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-amber-500 border-2 border-white dark:border-zinc-900"></div>
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-zinc-900 dark:text-white">Sarjana Teknik (S.T.) &middot; Informatics Engineering</h4>
+              <span class="font-mono text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">2018 &mdash; 2022</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-700 dark:text-zinc-300 mt-0.5">Sekolah Tinggi Teknologi Bandung (STTB)</p>
+            <p class="text-xs text-zinc-600 dark:text-zinc-400 mt-2 leading-relaxed">
+              Studied software engineering principles, distributed systems, relational database architecture, and algorithms with applied practical implementation.
+            </p>
+            <div class="flex flex-wrap gap-1.5 mt-3">
+              <span class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded">Software Engineering</span>
+              <span class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded">Algorithms & Data Structures</span>
+              <span class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded">Database Systems</span>
+              <span class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded">System Design</span>
+            </div>
+          </div>
+
+          <!-- Technical Specialization & Track -->
+          <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+            <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-zinc-400 dark:bg-zinc-600 border-2 border-white dark:border-zinc-900"></div>
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-zinc-900 dark:text-white">Advanced Web & Mobile Engineering Track</h4>
+              <span class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400">Professional Track</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 dark:text-zinc-400 mt-0.5">Continuous Practical Research & Implementation</p>
+            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-2 space-y-1.5 list-disc list-inside">
+              <li>High-concurrency backend architecture with PHP/Laravel and Livewire.</li>
+              <li>Server-side caching strategies (Redis/Memcached) for high-load systems.</li>
+              <li>Cross-platform and native mobile software development with Flutter & Kotlin.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+          <button id="closeEducationModalBtn" class="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-white transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Career Experience Modal Overlay -->
+    <div id="experienceModal" class="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+      <div id="modalBox" class="w-full max-w-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl transform translate-y-8 transition-transform duration-300 max-h-[88vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
+          <div>
+            <h3 class="text-base font-semibold text-zinc-900 dark:text-white">Engineering Background</h3>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-0.5">Pentacode Digital & Indonesia Comnet Plus</p>
+          </div>
+          <button id="closeExperienceModal" class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Career Timeline Items -->
+        <div class="space-y-6 mt-5">
+          <!-- Item 1 -->
+          <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+            <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-white dark:border-zinc-900"></div>
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-zinc-900 dark:text-white">Senior Web Developer</h4>
+              <span class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400">2021 &mdash; Present</span>
+            </div>
+            <p class="text-xs font-mono text-blue-600 dark:text-blue-400">Pentacode Digital &middot; Bandung</p>
+            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-2 space-y-1.5 list-disc list-inside">
+              <li>Architected and scaled the event ticketing system for <span class="text-zinc-900 dark:text-zinc-200 font-medium">takkenalmakatakgoyang.com</span> under flash surges.</li>
+              <li>Designed server-side caching schemes cutting database load significantly.</li>
+              <li>Engineered e-commerce platforms (Prostreet, Sijalu) with custom high-converting workflows.</li>
+              <li>Delivered secure corporate digital identities for global clients like Wadzpay.</li>
+            </ul>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+            <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-zinc-400 dark:bg-zinc-600 border-2 border-white dark:border-zinc-900"></div>
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-zinc-900 dark:text-white">Junior Engineer</h4>
+              <span class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400">2019 &mdash; 2021</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 dark:text-zinc-400">Indonesia Comnet Plus (SIMBIKA)</p>
+            <ul class="text-xs text-zinc-600 dark:text-zinc-400 mt-2 space-y-1.5 list-disc list-inside">
+              <li>Managed enterprise-grade corporate server operations and network maintenance.</li>
+              <li>Maintained operational field stability under corporate documentation and strict SOPs.</li>
+            </ul>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="relative pl-6 border-l-2 border-zinc-200 dark:border-zinc-800">
+            <div class="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-amber-500 border-2 border-white dark:border-zinc-900"></div>
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-zinc-900 dark:text-white">Informatics Engineering (S.T.)</h4>
+              <span class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400">2018 &mdash; 2022</span>
+            </div>
+            <p class="text-xs font-mono text-zinc-600 dark:text-zinc-400">Sekolah Tinggi Teknologi Bandung</p>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex justify-end">
+          <button id="closeExperienceModalBtn" class="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-white transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minimalist Footer -->
+    <footer class="mt-12 text-center text-zinc-400 dark:text-zinc-500 font-mono text-[11px] pb-6">
+      <p>&copy; <span id="year"></span> Ade Isman Aji &middot; Bandung, Indonesia</p>
+      <p class="mt-1 text-zinc-400 dark:text-zinc-600">Built with semantic HTML & Tailwind</p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 dark:bg-zinc-800 border border-zinc-700 text-white font-mono text-xs px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-16 opacity-0 pointer-events-none transition-all duration-300">
+    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastText">Action completed</span>
+  </div>
+
+  <script>
+    // Dynamic Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Live Clock for Bandung (WIB - UTC+7)
+    function updateClock() {
+      const options = {
+        timeZone: 'Asia/Jakarta',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      const timeStr = new Intl.DateTimeFormat([], options).format(new Date());
+      const clockEl = document.getElementById('localClock');
+      if (clockEl) clockEl.textContent = `${timeStr} WIB`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Robust Light / Dark Mode Toggle Management
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+
+    function applyTheme(isDark) {
+      if (isDark) {
+        html.classList.add('dark');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+        try { localStorage.setItem('site-theme', 'dark'); } catch (e) {}
+      } else {
+        html.classList.remove('dark');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+        try { localStorage.setItem('site-theme', 'light'); } catch (e) {}
+      }
+    }
+
+    // Initialize from storage or default to dark
+    let storedTheme = 'dark';
+    try {
+      storedTheme = localStorage.getItem('site-theme') || 'dark';
+    } catch (e) {
+      storedTheme = 'dark';
+    }
+    applyTheme(storedTheme === 'dark');
+
+    themeToggle.addEventListener('click', () => {
+      const isCurrentlyDark = html.classList.contains('dark');
+      applyTheme(!isCurrentlyDark);
+      showToast(!isCurrentlyDark ? 'Switched to Dark Mode' : 'Switched to Light Mode');
+    });
+
+    // Mouse Spotlight Effect on Cards
+    document.querySelectorAll('.spotlight-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // Toast Notification helper
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    let toastTimeout;
+
+    function showToast(message) {
+      toastText.textContent = message;
+      toast.classList.remove('translate-y-16', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // Safe Clipboard Copy (iframe resilient)
+    function copyToClipboard(text, successMsg) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (err) {
+        showToast('Copied: ' + text);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Quick email copy
+    document.getElementById('copyEmailQuick').addEventListener('click', () => {
+      copyToClipboard('adeismanaji@gmail.com', 'Email copied: adeismanaji@gmail.com');
+    });
+
+    // Career Timeline Modal Controls
+    const experienceModal = document.getElementById('experienceModal');
+    const modalBox = document.getElementById('modalBox');
+    const openExperienceModal = document.getElementById('openExperienceModal');
+    const closeExperienceModal = document.getElementById('closeExperienceModal');
+    const closeExperienceModalBtn = document.getElementById('closeExperienceModalBtn');
+
+    function openModal() {
+      experienceModal.classList.remove('opacity-0', 'pointer-events-none');
+      experienceModal.classList.add('opacity-100');
+      modalBox.classList.remove('translate-y-8');
+      modalBox.classList.add('translate-y-0');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      experienceModal.classList.add('opacity-0', 'pointer-events-none');
+      experienceModal.classList.remove('opacity-100');
+      modalBox.classList.add('translate-y-8');
+      modalBox.classList.remove('translate-y-0');
+      document.body.style.overflow = '';
+    }
+
+    openExperienceModal.addEventListener('click', openModal);
+    closeExperienceModal.addEventListener('click', closeModal);
+    closeExperienceModalBtn.addEventListener('click', closeModal);
+
+    experienceModal.addEventListener('click', (e) => {
+      if (e.target === experienceModal) closeModal();
+    });
+
+    // Education Modal Controls
+    const educationModal = document.getElementById('educationModal');
+    const educationModalBox = document.getElementById('educationModalBox');
+    const openEducationModal = document.getElementById('openEducationModal');
+    const closeEducationModal = document.getElementById('closeEducationModal');
+    const closeEducationModalBtn = document.getElementById('closeEducationModalBtn');
+
+    function openEduModal() {
+      educationModal.classList.remove('opacity-0', 'pointer-events-none');
+      educationModal.classList.add('opacity-100');
+      educationModalBox.classList.remove('translate-y-8');
+      educationModalBox.classList.add('translate-y-0');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeEduModal() {
+      educationModal.classList.add('opacity-0', 'pointer-events-none');
+      educationModal.classList.remove('opacity-100');
+      educationModalBox.classList.add('translate-y-8');
+      educationModalBox.classList.remove('translate-y-0');
+      document.body.style.overflow = '';
+    }
+
+    if (openEducationModal) openEducationModal.addEventListener('click', openEduModal);
+    if (closeEducationModal) closeEducationModal.addEventListener('click', closeEduModal);
+    if (closeEducationModalBtn) closeEducationModalBtn.addEventListener('click', closeEduModal);
+
+    educationModal.addEventListener('click', (e) => {
+      if (e.target === educationModal) closeEduModal();
+    });
+
+    // Keyboard ESC key listener
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!experienceModal.classList.contains('pointer-events-none')) closeModal();
+        if (!educationModal.classList.contains('pointer-events-none')) closeEduModal();
+      }
+    });
+  </script>
+</body>
+</html>
